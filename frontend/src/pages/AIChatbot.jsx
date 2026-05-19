@@ -2,7 +2,72 @@ import { useState } from "react";
 import { Bot, Mic, Send, ShieldPlus, HeartPulse } from "lucide-react";
 
 export default function AIChatbot() {
+
   const [message, setMessage] = useState("");
+
+  const [messages, setMessages] = useState([
+    {
+      sender: "bot",
+      text: "👋 Hello! I’m your intelligent healthcare assistant.",
+    },
+  ]);
+
+  // =========================
+  // SEND MESSAGE
+  // =========================
+  const sendMessage = async () => {
+
+    if (!message.trim()) return;
+
+    const userMessage = {
+      sender: "user",
+      text: message,
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+
+    const currentMessage = message;
+
+    setMessage("");
+
+    try {
+
+      const response = await fetch(
+        "http://localhost:8080/api/ai/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            message: currentMessage,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      const botReply = {
+        sender: "bot",
+        text: data.reply,
+      };
+
+      setMessages((prev) => [...prev, botReply]);
+
+    } catch (error) {
+
+      console.error(error);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "bot",
+          text: "⚠️ Failed to connect with backend.",
+        },
+      ]);
+    }
+  };
 
   return (
     <div
@@ -16,6 +81,7 @@ export default function AIChatbot() {
         border: "1px solid rgba(13,206,143,0.12)",
       }}
     >
+
       {/* Background Glow */}
       <div
         style={{
@@ -45,8 +111,10 @@ export default function AIChatbot() {
           backdropFilter: "blur(12px)",
         }}
       >
+
         {/* Left */}
         <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+
           <div
             style={{
               width: "64px",
@@ -119,51 +187,44 @@ export default function AIChatbot() {
           minHeight: "70vh",
         }}
       >
-        {/* Welcome Card */}
-        <div
-          style={{
-            maxWidth: "720px",
-            background: "rgba(19,32,26,0.92)",
-            border: "1px solid rgba(13,206,143,0.18)",
-            borderRadius: "24px",
-            padding: "28px",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "16px",
-            }}
-          >
-            <HeartPulse size={24} color="#0dce8f" />
-            <span
-              style={{
-                color: "#0dce8f",
-                fontWeight: "700",
-                fontSize: "16px",
-              }}
-            >
-              Welcome to HealthSetu AI
-            </span>
-          </div>
 
-          <p
+        {/* Chat Messages */}
+        {messages.map((msg, index) => (
+
+          <div
+            key={index}
             style={{
-              color: "#d9efe6",
-              fontSize: "20px",
+              alignSelf:
+                msg.sender === "user"
+                  ? "flex-end"
+                  : "flex-start",
+
+              maxWidth: "720px",
+
+              background:
+                msg.sender === "user"
+                  ? "#0dce8f"
+                  : "rgba(19,32,26,0.92)",
+
+              color:
+                msg.sender === "user"
+                  ? "#000"
+                  : "#d9efe6",
+
+              border:
+                msg.sender === "bot"
+                  ? "1px solid rgba(13,206,143,0.18)"
+                  : "none",
+
+              borderRadius: "24px",
+              padding: "22px",
               lineHeight: 1.7,
-              margin: 0,
+              fontSize: "18px",
             }}
           >
-            👋 Hello! I’m your intelligent healthcare assistant.
-            <br />
-            Ask about symptoms, medicines, nearby hospitals, medical reports,
-            or preventive healthcare guidance.
-          </p>
-        </div>
+            {msg.text}
+          </div>
+        ))}
 
         {/* Suggestion Cards */}
         <div
@@ -181,6 +242,7 @@ export default function AIChatbot() {
           ].map((item) => (
             <div
               key={item}
+              onClick={() => setMessage(item)}
               style={{
                 background: "#13201a",
                 border: "1px solid rgba(255,255,255,0.06)",
@@ -189,16 +251,6 @@ export default function AIChatbot() {
                 color: "#d9efe6",
                 cursor: "pointer",
                 transition: "0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor =
-                  "rgba(13,206,143,0.35)";
-                e.currentTarget.style.transform = "translateY(-3px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor =
-                  "rgba(255,255,255,0.06)";
-                e.currentTarget.style.transform = "translateY(0px)";
               }}
             >
               {item}
@@ -221,9 +273,11 @@ export default function AIChatbot() {
           }}
         >
           <ShieldPlus color="#0dce8f" size={24} />
+
           Your conversations are secure and designed to provide general
           healthcare guidance — not emergency medical diagnosis.
         </div>
+
       </div>
 
       {/* Bottom Input */}
@@ -238,6 +292,7 @@ export default function AIChatbot() {
           borderTop: "1px solid rgba(255,255,255,0.05)",
         }}
       >
+
         <div
           style={{
             display: "flex",
@@ -249,12 +304,21 @@ export default function AIChatbot() {
             padding: "16px 18px",
           }}
         >
+
           {/* Input */}
           <input
             type="text"
             placeholder="Ask your healthcare question..."
             value={message}
+
             onChange={(e) => setMessage(e.target.value)}
+
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                sendMessage();
+              }
+            }}
+
             style={{
               flex: 1,
               background: "transparent",
@@ -285,6 +349,7 @@ export default function AIChatbot() {
 
           {/* Send */}
           <button
+            onClick={sendMessage}
             style={{
               border: "none",
               background: "#0dce8f",
@@ -302,6 +367,7 @@ export default function AIChatbot() {
             <Send size={18} />
             Send
           </button>
+
         </div>
       </div>
     </div>
