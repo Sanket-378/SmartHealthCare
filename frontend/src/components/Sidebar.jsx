@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom"
 
 const NAV = [
     { to: "/",         icon: "🏠", label: "Home" },
-    { to: "/symptom",  icon: "🩺", label: "Symptom Checker", badge: "AI" },
+    { to: "/chatbot",  icon: "🩺", label: "Symptom Checker", badge: "AI" },
     { to: "/nearcare", icon: "📍", label: "NearCare" },
     { to: "/report",   icon: "📋", label: "Report Analyzer",  badge: "AI" },
     { to: "/medicine", icon: "💊", label: "Medicine Safety" },

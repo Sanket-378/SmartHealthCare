@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom"
 
 const FEATURES = [
-    { to: "/symptom",  icon: "🩺", title: "AI Symptom Checker",  sub: "Describe symptoms → get specialist guidance", badge: "AI" },
-    { to: "/nearcare", icon: "📍", title: "NearCare Locator",     sub: "Find PHC, blood bank, ambulance near you" },
+{ to: "/chatbot",  icon: "🩺", title: "AI Chatbot",  sub: "Describe symptoms → get specialist guidance", badge: "AI" },    { to: "/nearcare", icon: "📍", title: "NearCare Locator",     sub: "Find PHC, blood bank, ambulance near you" },
     { to: "/report",   icon: "📋", title: "Report Analyzer",      sub: "Upload any report → plain language explanation", badge: "AI" },
     { to: "/medicine", icon: "💊", title: "Medicine Safety",      sub: "Verify medicine + vaccination schedule" },
 ]
@@ -195,7 +194,7 @@ export default function Home() {
                     </div>
                     <button
                         style={S.bannerBtn}
-                        onClick={() => navigate("/symptom")}
+                        onClick={() => navigate("/chatbot")}
                         onMouseEnter={e => e.currentTarget.style.opacity = "0.88"}
                         onMouseLeave={e => e.currentTarget.style.opacity = "1"}
                     >
