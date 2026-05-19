@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Bot, Mic, Send, ShieldPlus, HeartPulse } from "lucide-react";
 
 export default function AIChatbot() {
 
   const [message, setMessage] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("English");
+
+  const recognitionRef = useRef(null);
 
   const [messages, setMessages] = useState([
     {
@@ -41,7 +44,10 @@ export default function AIChatbot() {
           },
 
           body: JSON.stringify({
-            message: currentMessage,
+            message: `
+            Reply ONLY in ${selectedLanguage} language.
+            User question: ${currentMessage}
+            `,
           }),
         }
       );
@@ -67,6 +73,47 @@ export default function AIChatbot() {
         },
       ]);
     }
+  };
+
+  const startVoiceInput = () => {
+
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("Speech Recognition not supported in this browser");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+
+    recognition.lang =
+      selectedLanguage === "Hindi"
+        ? "hi-IN"
+        : selectedLanguage === "Marathi"
+        ? "mr-IN"
+        : "en-US";
+
+    recognition.interimResults = false;
+
+    recognition.maxAlternatives = 1;
+
+    recognition.start();
+
+    recognitionRef.current = recognition;
+
+    recognition.onresult = (event) => {
+
+      const transcript =
+        event.results[0][0].transcript;
+
+      setMessage(transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error(event.error);
+    };
   };
 
   return (
@@ -157,22 +204,28 @@ export default function AIChatbot() {
         </div>
 
         {/* Language */}
-        <select
-          style={{
-            background: "#13201a",
-            color: "#e4f2ec",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "14px",
-            padding: "12px 18px",
-            outline: "none",
-            fontSize: "15px",
-            cursor: "pointer",
-          }}
-        >
-          <option>English</option>
-          <option>Hindi</option>
-          <option>Marathi</option>
-        </select>
+       <select
+         value={selectedLanguage}
+
+         onChange={(e) =>
+           setSelectedLanguage(e.target.value)
+         }
+
+         style={{
+           background: "#13201a",
+           color: "#e4f2ec",
+           border: "1px solid rgba(255,255,255,0.08)",
+           borderRadius: "14px",
+           padding: "12px 18px",
+           outline: "none",
+           fontSize: "15px",
+           cursor: "pointer",
+         }}
+       >
+         <option>English</option>
+         <option>Hindi</option>
+         <option>Marathi</option>
+       </select>
       </div>
 
       {/* Main Chat Area */}
@@ -331,6 +384,7 @@ export default function AIChatbot() {
 
           {/* Mic */}
           <button
+            onClick={startVoiceInput}
             style={{
               width: "52px",
               height: "52px",
