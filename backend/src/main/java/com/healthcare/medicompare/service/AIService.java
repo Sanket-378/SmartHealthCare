@@ -46,7 +46,7 @@ public class AIService {
 - Use very simple English.
 - Do not use difficult medical terms.
 - Highlight important warnings separately.
-- If symptoms are serious, advise doctor consultation.
+- advise doctor consultation.
 
 MEDICINE RULES:
 - Suggest only common over-the-counter medicines when safe.
