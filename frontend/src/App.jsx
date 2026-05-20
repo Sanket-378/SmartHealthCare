@@ -20,10 +20,11 @@ import PatientDashboard from "./pages/patient/Dashboard";
 import DoctorDashboard from "./pages/doctor/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 
-
+import FindDoctor from "./pages/patient/FindDoctor"
 // ============================
 // AUTH LAYOUT
 // ============================
+import BookAppointment from "./pages/patient/BookAppointment"
 
 function AuthLayout({ children }) {
   return (
@@ -172,6 +173,8 @@ export default function App() {
         {/* AUTH ROUTES */}
         {/* ========================= */}
 
+          <Route path="/patient/book/:doctorId" element={<BookAppointment />} />
+
         <Route
           path="/login"
           element={
@@ -203,7 +206,7 @@ export default function App() {
         {/* ========================= */}
         {/* DASHBOARDS */}
         {/* ========================= */}
-
+          <Route path="/patient/find-doctor" element={<FindDoctor />} />
         <Route
           path="/patient/dashboard"
           element={
