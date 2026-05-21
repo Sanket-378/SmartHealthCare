@@ -116,7 +116,6 @@ export default function DoctorRegister() {
         e.preventDefault()
         setError("")
 
-        // Validation
         if (!form.name || !form.email || !form.password || !form.phone) {
             setError("Please fill in all required fields."); return
         }
@@ -135,27 +134,37 @@ export default function DoctorRegister() {
 
         setLoading(true)
         try {
-            // Send as FormData because we have a file
             const formData = new FormData()
-            Object.entries(form).forEach(([key, val]) => {
-                if (key !== "confirmPassword") formData.append(key, val)
-            })
+            formData.append("name", form.name)
+            formData.append("email", form.email)
+            formData.append("password", form.password)
+            formData.append("phone", form.phone)
+            formData.append("specialization", form.specialization)
+            formData.append("qualification", form.qualification)
+            formData.append("experience", form.experience)
+            formData.append("clinicName", form.clinicName)
+            formData.append("address", form.address)
+            formData.append("city", form.city)
+            formData.append("pincode", form.pincode)
+            formData.append("fee", form.fee)
             formData.append("license", licenseFile)
 
             const res = await fetch("http://localhost:8080/api/auth/register/doctor", {
                 method: "POST",
                 body: formData,
             })
+
             const data = await res.json()
             if (!res.ok) throw new Error(data.message || "Registration failed")
+
             setSubmitted(true)
+
         } catch (err) {
             setError(err.message || "Something went wrong. Please try again.")
         } finally {
             setLoading(false)
         }
     }
-
     // Show pending screen after successful submission
     if (submitted) {
         return (

@@ -100,6 +100,14 @@ function AppLayout({ children }) {
 // ============================
 // PROTECTED ROUTE
 // ============================
+function HomeRedirect() {
+    const { user } = useAuth()
+    if (!user) return <Navigate to="/login" replace />
+    if (user.role === "PATIENT") return <Navigate to="/patient/dashboard" replace />
+    if (user.role === "DOCTOR")  return <Navigate to="/doctor/dashboard" replace />
+    if (user.role === "ADMIN")   return <Navigate to="/admin/dashboard" replace />
+    return <Navigate to="/login" replace />
+}
 function ProtectedRoute({ children, allowedRole }) {
     const { user } = useAuth();
     if (!user) return <Navigate to="/login" replace />;
@@ -141,7 +149,7 @@ export default function App() {
                 <Route path="/*" element={
                     <AppLayout>
                         <Routes>
-                            <Route path="/" element={<Home />} />
+                            <Route path="/" element={<HomeRedirect />} />
                             <Route path="/chatbot" element={<AIChatbot />} />
                             <Route path="/symptom" element={<AIChatbot />} />
                             <Route path="/nearcare" element={<NearCare />} />

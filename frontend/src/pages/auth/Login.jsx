@@ -80,18 +80,26 @@ export default function Login() {
         if (!email || !password) { setError("Please fill in all fields."); return }
         setLoading(true)
         setError("")
+
         try {
             const res = await fetch("http://localhost:8080/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password, role }),
             })
+
             const data = await res.json()
-            if (!res.ok) throw new Error(data.message || "Invalid credentials")
+
+            if (!res.ok) {
+                throw new Error(data.message || "Invalid credentials")
+            }
+
             login(data.user, data.token)
+
             if (data.user.role === "PATIENT") navigate("/patient/dashboard")
             else if (data.user.role === "DOCTOR") navigate("/doctor/dashboard")
             else if (data.user.role === "ADMIN")  navigate("/admin/dashboard")
+
         } catch (err) {
             setError(err.message || "Login failed. Please try again.")
         } finally {

@@ -15,34 +15,24 @@ const S = {
     subtitle: { fontSize:13, color:"#7da895", marginBottom:28 },
     grid2: { display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 },
     fieldWrap: { marginBottom:14 },
-    label: {
-        fontSize:12, fontWeight:600, color:"#7da895",
-        letterSpacing:"0.5px", marginBottom:6, display:"block"
-    },
+    label: { fontSize:12, fontWeight:600, color:"#7da895", letterSpacing:"0.5px", marginBottom:6, display:"block" },
     input: {
-        width:"100%", background:"#080f0c",
-        border:"1px solid rgba(255,255,255,0.10)",
-        borderRadius:10, padding:"12px 14px",
-        fontSize:14, color:"#e4f2ec", outline:"none",
-        fontFamily:"DM Sans,sans-serif", transition:"border-color 0.2s",
+        width:"100%", background:"#080f0c", border:"1px solid rgba(255,255,255,0.10)",
+        borderRadius:10, padding:"12px 14px", fontSize:14, color:"#e4f2ec",
+        outline:"none", fontFamily:"DM Sans,sans-serif", transition:"border-color 0.2s",
     },
     btn: {
-        width:"100%", padding:13, background:"#0dce8f",
-        border:"none", borderRadius:10, fontSize:15,
-        fontWeight:700, color:"#000", cursor:"pointer",
-        marginTop:8, fontFamily:"DM Sans,sans-serif",
+        width:"100%", padding:13, background:"#0dce8f", border:"none",
+        borderRadius:10, fontSize:15, fontWeight:700, color:"#000",
+        cursor:"pointer", marginTop:8, fontFamily:"DM Sans,sans-serif",
     },
     error: {
-        background:"rgba(255,77,109,0.10)",
-        border:"1px solid rgba(255,77,109,0.25)",
-        borderRadius:8, padding:"10px 14px",
-        fontSize:13, color:"#ff4d6d", marginBottom:14,
+        background:"rgba(255,77,109,0.10)", border:"1px solid rgba(255,77,109,0.25)",
+        borderRadius:8, padding:"10px 14px", fontSize:13, color:"#ff4d6d", marginBottom:14,
     },
     success: {
-        background:"rgba(13,206,143,0.10)",
-        border:"1px solid rgba(13,206,143,0.25)",
-        borderRadius:8, padding:"10px 14px",
-        fontSize:13, color:"#0dce8f", marginBottom:14,
+        background:"rgba(13,206,143,0.10)", border:"1px solid rgba(13,206,143,0.25)",
+        borderRadius:8, padding:"10px 14px", fontSize:13, color:"#0dce8f", marginBottom:14,
     },
     backLink: { fontSize:13, color:"#7da895", textAlign:"center", marginTop:20 },
     linkSpan: { color:"#0dce8f", fontWeight:600, cursor:"pointer" },
@@ -89,7 +79,7 @@ export default function PatientRegister() {
             })
             const data = await res.json()
             if (!res.ok) throw new Error(data.message || "Registration failed")
-            setSuccess("Account created! Redirecting to login...")
+            setSuccess("Account created successfully! Redirecting to login...")
             setTimeout(() => navigate("/login"), 2000)
         } catch (err) {
             setError(err.message || "Something went wrong. Please try again.")
@@ -163,8 +153,8 @@ export default function PatientRegister() {
                 </div>
 
                 <button type="submit" style={S.btn} disabled={loading}
-                        onMouseEnter={e => e.currentTarget.style.opacity = "0.88"}
-                        onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
+                        onMouseEnter={e => e.currentTarget.style.opacity="0.88"}
+                        onMouseLeave={e => e.currentTarget.style.opacity="1"}>
                     {loading ? "Creating account..." : "Create Patient Account"}
                 </button>
             </form>
