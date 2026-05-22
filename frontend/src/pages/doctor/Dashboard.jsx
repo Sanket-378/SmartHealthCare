@@ -120,7 +120,7 @@ export default function DoctorDashboard() {
 
     // Change this to check real doctor status from API later
     // For now: if user has doctorStatus = "PENDING" show pending banner
-    const isPending = user?.doctorStatus === "PENDING" || !user?.doctorStatus
+    const isPending = user?.status === "PENDING" || user?.doctorStatus === "PENDING"
 
     return (
         <div style={S.page}>

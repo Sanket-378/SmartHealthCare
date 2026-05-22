@@ -1,7 +1,7 @@
-import { useState } from "react"
+
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
-
+import { useState, useEffect } from "react"
 const S = {
     page: { minHeight:"100vh", background:"#080f0c", color:"#e4f2ec", padding:"32px 40px" },
     inner: { maxWidth:1100 },
@@ -189,29 +189,60 @@ const MOCK_RECENT_USERS = [
 export default function AdminDashboard() {
     const { user, logout } = useAuth()
     const navigate = useNavigate()
-    const [pendingDoctors, setPendingDoctors] = useState(MOCK_PENDING)
+    const [pendingDoctors, setPendingDoctors] = useState([])
     const [rejectModal, setRejectModal] = useState(null) // doctor id
     const [rejectReason, setRejectReason] = useState("")
     const [actionMsg, setActionMsg] = useState("")
+    useEffect(() => {
+        fetchPendingDoctors()
+    }, [])
+
+    const fetchPendingDoctors = async () => {
+        try {
+            const res = await fetch("http://localhost:8080/api/auth/admin/pending-doctors")
+            const data = await res.json()
+            setPendingDoctors(data)
+        } catch (err) {
+            console.error("Failed to fetch pending doctors:", err)
+        }
+    }
 
     const showMsg = (msg) => {
         setActionMsg(msg)
         setTimeout(() => setActionMsg(""), 3000)
     }
 
-    const handleApprove = (id) => {
-        // Replace with real API call: PUT /api/admin/doctors/{id}/approve
-        setPendingDoctors(p => p.filter(d => d.id !== id))
-        showMsg("✅ Doctor approved successfully. They can now log in.")
+    const handleApprove = async (id) => {
+        try {
+            const res = await fetch(`http://localhost:8080/api/auth/admin/approve-doctor/${id}`, {
+                method: "PUT",
+            })
+            if (res.ok) {
+                setPendingDoctors(p => p.filter(d => d.id !== id))
+                showMsg("✅ Doctor approved successfully. They can now log in.")
+            }
+        } catch (err) {
+            showMsg("❌ Failed to approve doctor.")
+        }
     }
 
-    const handleReject = () => {
+    const handleReject = async () => {
         if (!rejectReason.trim()) return
-        // Replace with real API call: PUT /api/admin/doctors/{id}/reject
-        setPendingDoctors(p => p.filter(d => d.id !== rejectModal))
-        setRejectModal(null)
-        setRejectReason("")
-        showMsg("❌ Doctor rejected. They have been notified.")
+        try {
+            const res = await fetch(`http://localhost:8080/api/auth/admin/reject-doctor/${rejectModal}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ reason: rejectReason }),
+            })
+            if (res.ok) {
+                setPendingDoctors(p => p.filter(d => d.id !== rejectModal))
+                setRejectModal(null)
+                setRejectReason("")
+                showMsg("❌ Doctor rejected. They have been notified.")
+            }
+        } catch (err) {
+            showMsg("❌ Failed to reject doctor.")
+        }
     }
 
     return (
@@ -309,7 +340,7 @@ export default function AdminDashboard() {
                                                 {doc.specialization} · {doc.qualification} · {doc.city}
                                             </div>
                                             <div style={{ ...S.doctorDetail, marginTop:2 }}>
-                                                📧 {doc.email} · Submitted: {doc.submittedOn}
+                                                📧 {doc.email} · Submitted: {new Date(doc.createdAt).toLocaleDateString()}
                                             </div>
                                         </div>
                                         <div style={S.doctorBtns}>
@@ -334,7 +365,7 @@ export default function AdminDashboard() {
                                     <div style={S.doctorMeta}>
                                         {[
                                             { label:"Experience", val:doc.experience },
-                                            { label:"Clinic",     val:doc.clinic },
+                                            { label:"Clinic",     val:doc.clinicName },
                                             { label:"Fee",        val:`₹${doc.fee}` },
                                             { label:"License",    val:"View document →" },
                                         ].map(({ label, val }) => (

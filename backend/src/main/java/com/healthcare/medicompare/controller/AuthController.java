@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -158,9 +160,64 @@ public class AuthController {
         userMap.put("email", user.getEmail());
         userMap.put("role", user.getRole());
         userMap.put("status", user.getStatus());
+        userMap.put("doctorStatus", user.getStatus());
 
         return ResponseEntity.ok(Map.of("token", token, "user", userMap));
     }
 
-    
+    // ── GET ALL PENDING DOCTORS ──
+    @GetMapping("/admin/pending-doctors")
+    public ResponseEntity<?> getPendingDoctors() {
+        List<User> pendingDoctors = userRepository.findByRoleAndStatus("DOCTOR", "PENDING");
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (User user : pendingDoctors) {
+            Map<String, Object> doctorMap = new HashMap<>();
+            doctorMap.put("id", user.getId());
+            doctorMap.put("name", user.getName());
+            doctorMap.put("email", user.getEmail());
+            doctorMap.put("phone", user.getPhone());
+            doctorMap.put("status", user.getStatus());
+            doctorMap.put("createdAt", user.getCreatedAt());
+
+            // Get doctor profile
+            doctorProfileRepository.findByUserId(user.getId()).ifPresent(profile -> {
+                doctorMap.put("specialization", profile.getSpecialization());
+                doctorMap.put("qualification", profile.getQualification());
+                doctorMap.put("experience", profile.getExperience());
+                doctorMap.put("clinicName", profile.getClinicName());
+                doctorMap.put("city", profile.getCity());
+                doctorMap.put("fee", profile.getFee());
+                doctorMap.put("licenseUrl", profile.getLicenseUrl());
+            });
+
+            result.add(doctorMap);
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    // ── APPROVE DOCTOR ──
+    @PutMapping("/admin/approve-doctor/{userId}")
+    public ResponseEntity<?> approveDoctor(@PathVariable Long userId) {
+        return userRepository.findById(userId).map(user -> {
+            user.setStatus("ACTIVE");
+            userRepository.save(user);
+            return ResponseEntity.ok(Map.of("message", "Doctor approved successfully"));
+        }).orElse(ResponseEntity.badRequest()
+                .body(Map.of("message", "Doctor not found")));
+    }
+
+    // ── REJECT DOCTOR ──
+    @PutMapping("/admin/reject-doctor/{userId}")
+    public ResponseEntity<?> rejectDoctor(
+            @PathVariable Long userId,
+            @RequestBody Map<String, String> request) {
+        return userRepository.findById(userId).map(user -> {
+            user.setStatus("REJECTED");
+            userRepository.save(user);
+            return ResponseEntity.ok(Map.of("message", "Doctor rejected successfully"));
+        }).orElse(ResponseEntity.badRequest()
+                .body(Map.of("message", "Doctor not found")));
+    }
 }
