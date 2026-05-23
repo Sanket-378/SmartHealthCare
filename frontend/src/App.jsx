@@ -19,8 +19,10 @@ import DoctorRegister from "./pages/auth/DoctorRegister";
 import PatientDashboard from "./pages/patient/Dashboard";
 import FindDoctor from "./pages/patient/FindDoctor";
 import BookAppointment from "./pages/patient/BookAppointment";
+import MyAppointments from "./pages/patient/MyAppointments";
 
 import DoctorDashboard from "./pages/doctor/Dashboard";
+import ManageSlots from "./pages/doctor/ManageSlots";
 import AdminDashboard from "./pages/admin/Dashboard";
 
 // ============================
@@ -129,11 +131,13 @@ export default function App() {
                 <Route path="/register/doctor" element={<AuthLayout><DoctorRegister /></AuthLayout>} />
 
                 {/* DASHBOARD ROUTES */}
+                {/* DASHBOARD ROUTES */}
                 <Route path="/patient/dashboard" element={
                     <ProtectedRoute allowedRole="PATIENT">
                         <AuthLayout><PatientDashboard /></AuthLayout>
                     </ProtectedRoute>
                 } />
+                <Route path="/patient/appointments" element={<MyAppointments />} />
                 <Route path="/doctor/dashboard" element={
                     <ProtectedRoute allowedRole="DOCTOR">
                         <AuthLayout><DoctorDashboard /></AuthLayout>
@@ -142,6 +146,11 @@ export default function App() {
                 <Route path="/admin/dashboard" element={
                     <ProtectedRoute allowedRole="ADMIN">
                         <AuthLayout><AdminDashboard /></AuthLayout>
+                    </ProtectedRoute>
+                } />
+                <Route path="/doctor/slots" element={
+                    <ProtectedRoute allowedRole="DOCTOR">
+                        <AuthLayout><ManageSlots /></AuthLayout>
                     </ProtectedRoute>
                 } />
 

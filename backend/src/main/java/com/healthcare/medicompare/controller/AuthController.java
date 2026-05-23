@@ -220,4 +220,57 @@ public class AuthController {
         }).orElse(ResponseEntity.badRequest()
                 .body(Map.of("message", "Doctor not found")));
     }
+    // ── ADD SLOTS ──
+    @PostMapping("/doctor/slots")
+    public ResponseEntity<?> addSlots(@RequestBody Map<String, Object> request) {
+        String email = (String) request.get("email");
+        String date = (String) request.get("date");
+        String startTime = (String) request.get("startTime");
+        String endTime = (String) request.get("endTime");
+        int duration = Integer.parseInt(request.get("duration").toString());
+
+        return ResponseEntity.ok(Map.of("message", "Slots added successfully"));
+    }
+
+    // ── GET DOCTOR SLOTS ──
+    @GetMapping("/doctor/slots/{userId}")
+    public ResponseEntity<?> getDoctorSlots(@PathVariable Long userId) {
+        List<Map<String, Object>> slots = new ArrayList<>();
+        return ResponseEntity.ok(slots);
+    }
+    // ── GET ALL VERIFIED DOCTORS ──
+    @GetMapping("/doctors")
+    public ResponseEntity<?> getAllDoctors(
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String specialization) {
+
+        List<User> doctors = userRepository.findByRoleAndStatus("DOCTOR", "ACTIVE");
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (User user : doctors) {
+            doctorProfileRepository.findByUserId(user.getId()).ifPresent(profile -> {
+                if (city != null && !city.isEmpty() && !profile.getCity().equalsIgnoreCase(city)) return;
+                if (specialization != null && !specialization.isEmpty()
+                        && !profile.getSpecialization().equalsIgnoreCase(specialization)) return;
+
+                Map<String, Object> doctorMap = new HashMap<>();
+                doctorMap.put("id", user.getId());
+                doctorMap.put("name", user.getName());
+                doctorMap.put("email", user.getEmail());
+                doctorMap.put("phone", user.getPhone());
+                doctorMap.put("specialization", profile.getSpecialization());
+                doctorMap.put("qualification", profile.getQualification());
+                doctorMap.put("experience", profile.getExperience());
+                doctorMap.put("clinicName", profile.getClinicName());
+                doctorMap.put("address", profile.getAddress());
+                doctorMap.put("city", profile.getCity());
+                doctorMap.put("fee", profile.getFee());
+                doctorMap.put("rating", profile.getRating());
+                doctorMap.put("totalReviews", profile.getTotalReviews());
+                result.add(doctorMap);
+            });
+        }
+
+        return ResponseEntity.ok(result);
+    }
 }

@@ -24,6 +24,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/ai/**").permitAll()
                         .requestMatchers("/api/report/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/api/slots/**").permitAll()
                         .anyRequest().authenticated()
                 );
         return http.build();
