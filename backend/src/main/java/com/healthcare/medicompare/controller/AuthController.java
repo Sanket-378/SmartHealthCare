@@ -10,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.healthcare.medicompare.entity.Appointment;
+import com.healthcare.medicompare.repository.AppointmentRepository;
+import com.healthcare.medicompare.repository.SlotRepository;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,9 +34,10 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final DoctorProfileRepository doctorProfileRepository;
+    private final SlotRepository slotRepository;
+    private final AppointmentRepository appointmentRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-
     // ── PATIENT REGISTER ──
     @PostMapping("/register/patient")
     public ResponseEntity<?> registerPatient(@RequestBody Map<String, Object> request) {
@@ -272,5 +276,44 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(result);
+    }
+    // ── BOOK APPOINTMENT ──
+    @PostMapping("/appointments/book")
+    public ResponseEntity<?> bookAppointment(@RequestBody Map<String, Object> request) {
+        try {
+            Long patientId = Long.parseLong(request.get("patientId").toString());
+            Long doctorId  = Long.parseLong(request.get("doctorId").toString());
+            Long slotId    = Long.parseLong(request.get("slotId").toString());
+
+            // Check slot exists and is not booked
+            return slotRepository.findById(slotId).map(slot -> {
+                if (slot.getIsBooked()) {
+                    return ResponseEntity.badRequest()
+                            .body(Map.of("message", "This slot is already booked"));
+                }
+
+                // Create appointment
+                Appointment appointment = new Appointment();
+                appointment.setPatientId(patientId);
+                appointment.setDoctorId(doctorId);
+                appointment.setSlotId(slotId);
+                appointment.setStatus("CONFIRMED");
+                appointmentRepository.save(appointment);
+
+                // Mark slot as booked
+                slot.setIsBooked(true);
+                slotRepository.save(slot);
+
+                return ResponseEntity.ok(Map.of(
+                        "message", "Appointment booked successfully",
+                        "appointmentId", appointment.getId()
+                ));
+            }).orElse(ResponseEntity.badRequest()
+                    .body(Map.of("message", "Slot not found")));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Failed to book appointment: " + e.getMessage()));
+        }
     }
 }

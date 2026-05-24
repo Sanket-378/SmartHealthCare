@@ -1,31 +1,12 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-
-const DOCTORS = {
-    1: { name:"Dr. Amit Sharma", specialization:"Cardiologist", clinic:"City Care Clinic", city:"Pune", fee:500 },
-    2: { name:"Dr. Priya Patel",  specialization:"Dermatologist", clinic:"Skin Care Centre", city:"Mumbai", fee:400 },
-    3: { name:"Dr. Rahul Mehta",  specialization:"Neurologist", clinic:"Brain & Spine Clinic", city:"Nashik", fee:800 },
-    4: { name:"Dr. Sneha Joshi",  specialization:"General Physician", clinic:"Family Health Clinic", city:"Pune", fee:200 },
-    5: { name:"Dr. Vikram Singh", specialization:"Orthopaedician", clinic:"Bone & Joint Centre", city:"Pune", fee:600 },
-    6: { name:"Dr. Anita Desai",  specialization:"Gynaecologist", clinic:"Women Care Clinic", city:"Mumbai", fee:500 },
-}
-
-const MOCK_SLOTS = {
-    "2026-05-21": ["09:00 AM","09:30 AM","10:00 AM","11:00 AM","11:30 AM","02:00 PM","02:30 PM","03:00 PM"],
-    "2026-05-22": ["09:00 AM","10:00 AM","10:30 AM","11:00 AM","03:00 PM","03:30 PM","04:00 PM"],
-    "2026-05-23": ["09:30 AM","10:00 AM","11:00 AM","02:00 PM","04:00 PM","04:30 PM"],
-    "2026-05-24": ["09:00 AM","10:30 AM","11:30 AM","02:30 PM","03:00 PM"],
-    "2026-05-25": ["10:00 AM","11:00 AM","03:00 PM","04:00 PM"],
-}
+import { useAuth } from "../../context/AuthContext"
 
 const S = {
     page: { maxWidth:900 },
-    title: { fontFamily:"Syne,sans-serif", fontSize:34, fontWeight:800,
-        letterSpacing:-0.8, marginBottom:8 },
+    title: { fontFamily:"Syne,sans-serif", fontSize:34, fontWeight:800, letterSpacing:-0.8, marginBottom:8 },
     green: { color:"#0dce8f" },
     desc: { fontSize:15, color:"#7da895", marginBottom:28, lineHeight:1.7 },
-
-    // Doctor summary card
     docCard: {
         background:"#0c1812", border:"1px solid rgba(255,255,255,0.08)",
         borderRadius:14, padding:"18px 20px", marginBottom:28,
@@ -52,37 +33,17 @@ const S = {
     },
     feeNum: { fontFamily:"Syne,sans-serif", fontSize:20, fontWeight:800, color:"#0dce8f" },
     feeLabel: { fontSize:10, color:"#7da895", marginTop:2 },
-
-    // Steps
     steps: { display:"flex", gap:0, marginBottom:28 },
-    step: { display:"flex", alignItems:"center", gap:8, flex:1 },
-    stepCircle: {
-        width:28, height:28, borderRadius:"50%", display:"flex",
-        alignItems:"center", justifyContent:"center", fontSize:12,
-        fontWeight:700, flexShrink:0,
-    },
-    stepLabel: { fontSize:12, fontWeight:500 },
-    stepLine: { flex:1, height:1, background:"rgba(255,255,255,0.08)", margin:"0 8px" },
-
-    sectionLabel: { fontSize:11, fontWeight:700, letterSpacing:"1.8px",
-        color:"#456659", textTransform:"uppercase", marginBottom:14 },
-
-    // Date picker
+    sectionLabel: { fontSize:11, fontWeight:700, letterSpacing:"1.8px", color:"#456659", textTransform:"uppercase", marginBottom:14 },
     dateGrid: { display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:10, marginBottom:28 },
     dateCard: {
         background:"#0c1812", border:"1px solid rgba(255,255,255,0.07)",
-        borderRadius:12, padding:"12px 8px", textAlign:"center",
-        cursor:"pointer", transition:"all 0.2s",
+        borderRadius:12, padding:"12px 8px", textAlign:"center", cursor:"pointer", transition:"all 0.2s",
     },
-    dateCardActive: {
-        background:"rgba(13,206,143,0.12)",
-        border:"1px solid rgba(13,206,143,0.35)",
-    },
+    dateCardActive: { background:"rgba(13,206,143,0.12)", border:"1px solid rgba(13,206,143,0.35)" },
     dateDay: { fontSize:11, color:"#456659", marginBottom:4, textTransform:"uppercase" },
     dateNum: { fontFamily:"Syne,sans-serif", fontSize:20, fontWeight:700, color:"#e4f2ec" },
     dateMonth: { fontSize:11, color:"#7da895", marginTop:2 },
-
-    // Slot grid
     slotGrid: { display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:28 },
     slotBtn: {
         padding:"10px 8px", borderRadius:10, fontSize:13, fontWeight:500,
@@ -90,22 +51,13 @@ const S = {
         border:"1px solid rgba(255,255,255,0.08)", background:"#0c1812",
         color:"#7da895", fontFamily:"DM Sans,sans-serif",
     },
-    slotBtnActive: {
-        background:"rgba(13,206,143,0.12)",
-        border:"1px solid rgba(13,206,143,0.35)",
-        color:"#0dce8f", fontWeight:600,
-    },
-
-    // Confirm card
+    slotBtnActive: { background:"rgba(13,206,143,0.12)", border:"1px solid rgba(13,206,143,0.35)", color:"#0dce8f", fontWeight:600 },
+    slotBtnBooked: { background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.05)", color:"#456659", cursor:"not-allowed" },
     confirmCard: {
         background:"#0c1812", border:"1px solid rgba(255,255,255,0.08)",
         borderRadius:14, padding:"24px", marginBottom:24,
     },
-    confirmRow: {
-        display:"flex", justifyContent:"space-between",
-        padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)",
-        fontSize:14,
-    },
+    confirmRow: { display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)", fontSize:14 },
     confirmLabel: { color:"#7da895" },
     confirmVal: { color:"#e4f2ec", fontWeight:500 },
     confirmBtn: {
@@ -113,20 +65,22 @@ const S = {
         borderRadius:12, fontSize:15, fontWeight:700, color:"#000",
         cursor:"pointer", fontFamily:"DM Sans,sans-serif",
     },
-
-    // Success
+    backBtn: {
+        flex:1, padding:14, background:"transparent",
+        border:"1px solid rgba(255,255,255,0.15)", borderRadius:12,
+        fontSize:14, fontWeight:600, color:"#7da895",
+        cursor:"pointer", fontFamily:"DM Sans,sans-serif",
+    },
     successCard: {
         background:"rgba(13,206,143,0.07)", border:"1px solid rgba(13,206,143,0.25)",
         borderRadius:16, padding:"40px 32px", textAlign:"center",
     },
     successIcon: { fontSize:60, marginBottom:16 },
-    successTitle: { fontFamily:"Syne,sans-serif", fontSize:24, fontWeight:800,
-        color:"#0dce8f", marginBottom:10 },
+    successTitle: { fontFamily:"Syne,sans-serif", fontSize:24, fontWeight:800, color:"#0dce8f", marginBottom:10 },
     successText: { fontSize:14, color:"#7da895", lineHeight:1.7, marginBottom:24 },
     successDetails: {
         background:"#0c1812", borderRadius:12, padding:"16px 20px",
-        textAlign:"left", marginBottom:24,
-        display:"flex", flexDirection:"column", gap:8,
+        textAlign:"left", marginBottom:24, display:"flex", flexDirection:"column", gap:8,
     },
     successDetailRow: { display:"flex", justifyContent:"space-between", fontSize:13 },
 }
@@ -149,25 +103,69 @@ function getNext5Days() {
 }
 
 export default function BookAppointment() {
-    const { doctorId } = useParams()
-    const navigate     = useNavigate()
-    const doctor       = DOCTORS[parseInt(doctorId)] || DOCTORS[1]
-    const days         = getNext5Days()
+    const { doctorId }  = useParams()
+    const navigate      = useNavigate()
+    const { user }      = useAuth()
+    const days          = getNext5Days()
 
-    const [step, setStep]           = useState(1) // 1=date, 2=slot, 3=confirm, 4=success
-    const [selectedDate, setDate]   = useState(null)
-    const [selectedSlot, setSlot]   = useState(null)
-    const [loading, setLoading]     = useState(false)
+    const [doctor, setDoctor]         = useState(null)
+    const [slots, setSlots]           = useState([])
+    const [step, setStep]             = useState(1)
+    const [selectedDate, setDate]     = useState(null)
+    const [selectedSlot, setSlot]     = useState(null)
+    const [loading, setLoading]       = useState(false)
+    const [bookingDone, setBookingDone] = useState(false)
 
-    const slots = selectedDate ? (MOCK_SLOTS[selectedDate] || []) : []
+    useEffect(() => {
+        fetchDoctor()
+    }, [doctorId])
+
+    useEffect(() => {
+        if (selectedDate) fetchSlots(selectedDate)
+    }, [selectedDate])
+
+    const fetchDoctor = async () => {
+        try {
+            const res = await fetch("http://localhost:8080/api/auth/doctors")
+            const data = await res.json()
+            const found = data.find(d => d.id === parseInt(doctorId))
+            setDoctor(found)
+        } catch (err) {
+            console.error("Failed to fetch doctor:", err)
+        }
+    }
+
+    const fetchSlots = async (date) => {
+        try {
+            const res = await fetch(`http://localhost:8080/api/slots/doctor/${doctorId}/date/${date}`)
+            const data = await res.json()
+            setSlots(data)
+        } catch (err) {
+            console.error("Failed to fetch slots:", err)
+        }
+    }
 
     const handleConfirm = async () => {
         setLoading(true)
-        // Replace with real API: POST /api/appointments/book
-        setTimeout(() => {
-            setLoading(false)
+        try {
+            const res = await fetch("http://localhost:8080/api/auth/appointments/book", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    patientId: user.id,
+                    doctorId: parseInt(doctorId),
+                    slotId: selectedSlot.id,
+                }),
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.message || "Booking failed")
+            setBookingDone(true)
             setStep(4)
-        }, 1500)
+        } catch (err) {
+            alert(err.message || "Failed to book appointment")
+        } finally {
+            setLoading(false)
+        }
     }
 
     const stepInfo = [
@@ -175,6 +173,17 @@ export default function BookAppointment() {
         { num:2, label:"Pick slot" },
         { num:3, label:"Confirm" },
     ]
+
+    if (!doctor) {
+        return (
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:400 }}>
+                <div style={{ textAlign:"center", color:"#7da895" }}>
+                    <div style={{ fontSize:32, marginBottom:12 }}>🔄</div>
+                    <div>Loading doctor details...</div>
+                </div>
+            </div>
+        )
+    }
 
     if (step === 4) {
         return (
@@ -189,9 +198,9 @@ export default function BookAppointment() {
                     <div style={S.successDetails}>
                         {[
                             { label:"Doctor",   val:doctor.name },
-                            { label:"Date",     val:days.find(d=>d.key===selectedDate)?.num + " " + days.find(d=>d.key===selectedDate)?.month },
-                            { label:"Time",     val:selectedSlot },
-                            { label:"Clinic",   val:doctor.clinic },
+                            { label:"Date",     val:selectedDate },
+                            { label:"Time",     val:selectedSlot?.startTime },
+                            { label:"Clinic",   val:doctor.clinicName },
                             { label:"City",     val:doctor.city },
                             { label:"Fee",      val:`₹${doctor.fee} (pay at clinic)` },
                         ].map(({ label, val }) => (
@@ -202,21 +211,10 @@ export default function BookAppointment() {
                         ))}
                     </div>
                     <div style={{ display:"flex", gap:12 }}>
-                        <button
-                            onClick={() => navigate("/patient/dashboard")}
-                            style={{ ...S.confirmBtn, flex:1 }}
-                        >
+                        <button onClick={() => navigate("/patient/dashboard")} style={{ ...S.confirmBtn, flex:1 }}>
                             Go to Dashboard
                         </button>
-                        <button
-                            onClick={() => navigate("/patient/find-doctor")}
-                            style={{
-                                flex:1, padding:14, background:"transparent",
-                                border:"1px solid rgba(255,255,255,0.15)", borderRadius:12,
-                                fontSize:15, fontWeight:600, color:"#7da895",
-                                cursor:"pointer", fontFamily:"DM Sans,sans-serif",
-                            }}
-                        >
+                        <button onClick={() => navigate("/patient/find-doctor")} style={{ ...S.backBtn }}>
                             Find Another Doctor
                         </button>
                     </div>
@@ -237,7 +235,7 @@ export default function BookAppointment() {
                 <div>
                     <div style={S.docName}>{doctor.name}</div>
                     <div style={S.docSpec}>{doctor.specialization}</div>
-                    <div style={S.docMeta}>📍 {doctor.clinic}, {doctor.city}</div>
+                    <div style={S.docMeta}>📍 {doctor.clinicName}, {doctor.city}</div>
                 </div>
                 <div style={S.feeBadge}>
                     <div style={S.feeNum}>₹{doctor.fee}</div>
@@ -245,30 +243,25 @@ export default function BookAppointment() {
                 </div>
             </div>
 
-            {/* Steps indicator */}
+            {/* Steps */}
             <div style={S.steps}>
                 {stepInfo.map((s, i) => (
                     <div key={s.num} style={{ display:"flex", alignItems:"center", flex:1 }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                             <div style={{
-                                ...S.stepCircle,
+                                width:28, height:28, borderRadius:"50%", display:"flex",
+                                alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, flexShrink:0,
                                 background: step >= s.num ? "#0dce8f" : "rgba(255,255,255,0.07)",
                                 color: step >= s.num ? "#000" : "#456659",
                             }}>
                                 {step > s.num ? "✓" : s.num}
                             </div>
-                            <span style={{
-                                ...S.stepLabel,
-                                color: step >= s.num ? "#e4f2ec" : "#456659",
-                            }}>
+                            <span style={{ fontSize:12, fontWeight:500, color: step >= s.num ? "#e4f2ec" : "#456659" }}>
                 {s.label}
               </span>
                         </div>
                         {i < stepInfo.length - 1 && (
-                            <div style={{ flex:1, height:1,
-                                background: step > s.num ? "#0dce8f" : "rgba(255,255,255,0.08)",
-                                margin:"0 12px", transition:"background 0.3s",
-                            }} />
+                            <div style={{ flex:1, height:1, background: step > s.num ? "#0dce8f" : "rgba(255,255,255,0.08)", margin:"0 12px" }} />
                         )}
                     </div>
                 ))}
@@ -282,26 +275,17 @@ export default function BookAppointment() {
                         {days.map(d => (
                             <div
                                 key={d.key}
-                                style={selectedDate === d.key
-                                    ? { ...S.dateCard, ...S.dateCardActive }
-                                    : S.dateCard}
+                                style={selectedDate === d.key ? { ...S.dateCard, ...S.dateCardActive } : S.dateCard}
                                 onClick={() => { setDate(d.key); setSlot(null) }}
                             >
                                 <div style={S.dateDay}>{d.day}</div>
-                                <div style={{
-                                    ...S.dateNum,
-                                    color: selectedDate === d.key ? "#0dce8f" : "#e4f2ec"
-                                }}>{d.num}</div>
+                                <div style={{ ...S.dateNum, color: selectedDate === d.key ? "#0dce8f" : "#e4f2ec" }}>{d.num}</div>
                                 <div style={S.dateMonth}>{d.month}</div>
                             </div>
                         ))}
                     </div>
                     <button
-                        style={{
-                            ...S.confirmBtn,
-                            opacity: selectedDate ? 1 : 0.4,
-                            cursor: selectedDate ? "pointer" : "not-allowed",
-                        }}
+                        style={{ ...S.confirmBtn, opacity: selectedDate ? 1 : 0.4, cursor: selectedDate ? "pointer" : "not-allowed" }}
                         disabled={!selectedDate}
                         onClick={() => setStep(2)}
                     >
@@ -314,10 +298,7 @@ export default function BookAppointment() {
             {step === 2 && (
                 <div>
                     <div style={S.sectionLabel}>
-                        Available slots —{" "}
-                        {days.find(d => d.key === selectedDate)?.day}{" "}
-                        {days.find(d => d.key === selectedDate)?.num}{" "}
-                        {days.find(d => d.key === selectedDate)?.month}
+                        Available slots — {days.find(d => d.key === selectedDate)?.day} {days.find(d => d.key === selectedDate)?.num} {days.find(d => d.key === selectedDate)?.month}
                     </div>
                     {slots.length === 0 ? (
                         <div style={{ padding:"32px", textAlign:"center", color:"#456659", fontSize:14 }}>
@@ -327,37 +308,25 @@ export default function BookAppointment() {
                         <div style={S.slotGrid}>
                             {slots.map(slot => (
                                 <button
-                                    key={slot}
-                                    style={selectedSlot === slot
-                                        ? { ...S.slotBtn, ...S.slotBtnActive }
-                                        : S.slotBtn}
-                                    onClick={() => setSlot(slot)}
-                                    onMouseEnter={e => selectedSlot !== slot && (e.currentTarget.style.borderColor="rgba(13,206,143,0.25)")}
-                                    onMouseLeave={e => selectedSlot !== slot && (e.currentTarget.style.borderColor="rgba(255,255,255,0.08)")}
+                                    key={slot.id}
+                                    disabled={slot.isBooked}
+                                    style={
+                                        slot.isBooked ? S.slotBtnBooked :
+                                            selectedSlot?.id === slot.id ? { ...S.slotBtn, ...S.slotBtnActive } :
+                                                S.slotBtn
+                                    }
+                                    onClick={() => !slot.isBooked && setSlot(slot)}
                                 >
-                                    {slot}
+                                    {slot.startTime}
+                                    {slot.isBooked && <div style={{ fontSize:10, color:"#456659" }}>Booked</div>}
                                 </button>
                             ))}
                         </div>
                     )}
                     <div style={{ display:"flex", gap:12 }}>
+                        <button style={S.backBtn} onClick={() => setStep(1)}>← Back</button>
                         <button
-                            onClick={() => setStep(1)}
-                            style={{
-                                flex:1, padding:14, background:"transparent",
-                                border:"1px solid rgba(255,255,255,0.15)", borderRadius:12,
-                                fontSize:14, fontWeight:600, color:"#7da895",
-                                cursor:"pointer", fontFamily:"DM Sans,sans-serif",
-                            }}
-                        >
-                            ← Back
-                        </button>
-                        <button
-                            style={{
-                                ...S.confirmBtn, flex:2,
-                                opacity: selectedSlot ? 1 : 0.4,
-                                cursor: selectedSlot ? "pointer" : "not-allowed",
-                            }}
+                            style={{ ...S.confirmBtn, flex:2, opacity: selectedSlot ? 1 : 0.4, cursor: selectedSlot ? "pointer" : "not-allowed" }}
                             disabled={!selectedSlot}
                             onClick={() => setStep(3)}
                         >
@@ -373,52 +342,32 @@ export default function BookAppointment() {
                     <div style={S.sectionLabel}>Confirm your booking</div>
                     <div style={S.confirmCard}>
                         {[
-                            { label:"Doctor",        val:doctor.name },
-                            { label:"Specialization",val:doctor.specialization },
-                            { label:"Date",          val:`${days.find(d=>d.key===selectedDate)?.day}, ${days.find(d=>d.key===selectedDate)?.num} ${days.find(d=>d.key===selectedDate)?.month}` },
-                            { label:"Time",          val:selectedSlot },
-                            { label:"Clinic",        val:doctor.clinic },
-                            { label:"Address",       val:doctor.city },
-                            { label:"Consultation fee", val:`₹${doctor.fee} — pay at clinic` },
+                            { label:"Doctor",         val:doctor.name },
+                            { label:"Specialization", val:doctor.specialization },
+                            { label:"Date",           val:selectedDate },
+                            { label:"Time",           val:selectedSlot?.startTime },
+                            { label:"Clinic",         val:doctor.clinicName },
+                            { label:"City",           val:doctor.city },
+                            { label:"Fee",            val:`₹${doctor.fee} — pay at clinic` },
                         ].map(({ label, val }, i, arr) => (
-                            <div key={label} style={{
-                                ...S.confirmRow,
-                                borderBottom: i === arr.length-1 ? "none" : "1px solid rgba(255,255,255,0.05)",
-                            }}>
+                            <div key={label} style={{ ...S.confirmRow, borderBottom: i === arr.length-1 ? "none" : "1px solid rgba(255,255,255,0.05)" }}>
                                 <span style={S.confirmLabel}>{label}</span>
-                                <span style={{
-                                    ...S.confirmVal,
-                                    color: label === "Consultation fee" ? "#0dce8f" : "#e4f2ec"
-                                }}>{val}</span>
+                                <span style={{ ...S.confirmVal, color: label === "Fee" ? "#0dce8f" : "#e4f2ec" }}>{val}</span>
                             </div>
                         ))}
                     </div>
                     <div style={{
                         background:"rgba(255,179,71,0.07)", border:"1px solid rgba(255,179,71,0.2)",
-                        borderRadius:10, padding:"12px 16px", fontSize:13,
-                        color:"#ffb347", marginBottom:20, lineHeight:1.6,
+                        borderRadius:10, padding:"12px 16px", fontSize:13, color:"#ffb347", marginBottom:20, lineHeight:1.6,
                     }}>
-                        ℹ️ Please arrive 10 minutes before your appointment time.
-                        Carry a valid ID and any previous medical reports.
+                        ℹ️ Please arrive 10 minutes before your appointment. Carry a valid ID and previous reports.
                     </div>
                     <div style={{ display:"flex", gap:12 }}>
-                        <button
-                            onClick={() => setStep(2)}
-                            style={{
-                                flex:1, padding:14, background:"transparent",
-                                border:"1px solid rgba(255,255,255,0.15)", borderRadius:12,
-                                fontSize:14, fontWeight:600, color:"#7da895",
-                                cursor:"pointer", fontFamily:"DM Sans,sans-serif",
-                            }}
-                        >
-                            ← Back
-                        </button>
+                        <button style={S.backBtn} onClick={() => setStep(2)}>← Back</button>
                         <button
                             style={{ ...S.confirmBtn, flex:2 }}
                             onClick={handleConfirm}
                             disabled={loading}
-                            onMouseEnter={e => e.currentTarget.style.opacity="0.88"}
-                            onMouseLeave={e => e.currentTarget.style.opacity="1"}
                         >
                             {loading ? "Booking..." : "✓ Confirm Appointment"}
                         </button>
