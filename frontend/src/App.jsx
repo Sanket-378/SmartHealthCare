@@ -23,6 +23,7 @@ import MyAppointments from "./pages/patient/MyAppointments";
 
 import DoctorDashboard from "./pages/doctor/Dashboard";
 import ManageSlots from "./pages/doctor/ManageSlots";
+import DoctorMyAppointments from "./pages/doctor/MyAppointments";
 import AdminDashboard from "./pages/admin/Dashboard";
 
 // ============================
@@ -151,6 +152,11 @@ export default function App() {
                 <Route path="/doctor/slots" element={
                     <ProtectedRoute allowedRole="DOCTOR">
                         <AuthLayout><ManageSlots /></AuthLayout>
+                    </ProtectedRoute>
+                } />
+                <Route path="/doctor/appointments" element={
+                    <ProtectedRoute allowedRole="DOCTOR">
+                        <DoctorMyAppointments />
                     </ProtectedRoute>
                 } />
 
