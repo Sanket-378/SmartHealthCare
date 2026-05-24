@@ -187,7 +187,7 @@ export default function BookAppointment() {
 
     if (step === 4) {
         return (
-            <div style={S.page}>
+            <div style={S.page} className="page-enter">
                 <div style={S.successCard}>
                     <div style={S.successIcon}>🎉</div>
                     <div style={S.successTitle}>Appointment Booked!</div>
@@ -224,7 +224,7 @@ export default function BookAppointment() {
     }
 
     return (
-        <div style={S.page}>
+        <div style={S.page} className="page-enter">
             <h1 style={S.title}>Book <span style={S.green}>Appointment</span></h1>
             <p style={S.desc}>Select a date and time slot that works for you.</p>
 

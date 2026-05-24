@@ -25,6 +25,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/report/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/slots/**").permitAll()
+                        .requestMatchers("/api/appointments/**").permitAll()
                         .anyRequest().authenticated()
                 );
         return http.build();

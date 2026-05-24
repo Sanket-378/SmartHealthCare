@@ -155,7 +155,7 @@ export default function MyAppointments() {
     const current  = tab === "upcoming" ? upcoming : past
 
     return (
-        <div style={S.page}>
+        <div style={S.page} className="page-enter">
             <h1 style={S.title}>My <span style={S.green}>Appointments</span></h1>
             <p style={S.desc}>View and manage all your booked appointments.</p>
 

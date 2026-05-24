@@ -185,7 +185,7 @@ export default function ManageSlots() {
     const grouped = groupByDate(slots)
 
     return (
-        <div style={S.page}>
+        <div style={S.page} className="page-enter">
             <div style={S.inner}>
                 <h1 style={S.title}>Manage <span style={S.green}>Slots</span></h1>
                 <p style={S.desc}>

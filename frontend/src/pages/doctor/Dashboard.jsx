@@ -123,7 +123,7 @@ export default function DoctorDashboard() {
     const isPending = user?.status === "PENDING" || user?.doctorStatus === "PENDING"
 
     return (
-        <div style={S.page}>
+        <div style={S.page} className="page-enter">
             <div style={S.inner}>
 
                 {/* Pending verification banner */}

@@ -138,7 +138,7 @@ export default function FindDoctor() {
     }
 
     return (
-        <div style={S.page}>
+        <div style={S.page} className="page-enter">
             <h1 style={S.title}>Find a <span style={S.green}>Doctor</span></h1>
             <p style={S.desc}>
                 Search verified doctors by specialization, city, or name.
