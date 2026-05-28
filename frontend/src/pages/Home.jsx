@@ -94,7 +94,7 @@ export default function Home() {
     const navigate = useNavigate()
 
     return (
-        <div style={S.page}>
+        <div style={S.page} className="page-enter">
 
             {/* Ambient background blobs */}
             <div style={{ position:"fixed", inset:0, pointerEvents:"none", overflow:"hidden", zIndex:0 }}>

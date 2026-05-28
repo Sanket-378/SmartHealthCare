@@ -10,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.healthcare.medicompare.entity.Appointment;
+import com.healthcare.medicompare.repository.AppointmentRepository;
+import com.healthcare.medicompare.repository.SlotRepository;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,9 +34,10 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final DoctorProfileRepository doctorProfileRepository;
+    private final SlotRepository slotRepository;
+    private final AppointmentRepository appointmentRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-
     // ── PATIENT REGISTER ──
     @PostMapping("/register/patient")
     public ResponseEntity<?> registerPatient(@RequestBody Map<String, Object> request) {
@@ -219,5 +223,97 @@ public class AuthController {
             return ResponseEntity.ok(Map.of("message", "Doctor rejected successfully"));
         }).orElse(ResponseEntity.badRequest()
                 .body(Map.of("message", "Doctor not found")));
+    }
+    // ── ADD SLOTS ──
+    @PostMapping("/doctor/slots")
+    public ResponseEntity<?> addSlots(@RequestBody Map<String, Object> request) {
+        String email = (String) request.get("email");
+        String date = (String) request.get("date");
+        String startTime = (String) request.get("startTime");
+        String endTime = (String) request.get("endTime");
+        int duration = Integer.parseInt(request.get("duration").toString());
+
+        return ResponseEntity.ok(Map.of("message", "Slots added successfully"));
+    }
+
+    // ── GET DOCTOR SLOTS ──
+    @GetMapping("/doctor/slots/{userId}")
+    public ResponseEntity<?> getDoctorSlots(@PathVariable Long userId) {
+        List<Map<String, Object>> slots = new ArrayList<>();
+        return ResponseEntity.ok(slots);
+    }
+    // ── GET ALL VERIFIED DOCTORS ──
+    @GetMapping("/doctors")
+    public ResponseEntity<?> getAllDoctors(
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String specialization) {
+
+        List<User> doctors = userRepository.findByRoleAndStatus("DOCTOR", "ACTIVE");
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (User user : doctors) {
+            doctorProfileRepository.findByUserId(user.getId()).ifPresent(profile -> {
+                if (city != null && !city.isEmpty() && !profile.getCity().equalsIgnoreCase(city)) return;
+                if (specialization != null && !specialization.isEmpty()
+                        && !profile.getSpecialization().equalsIgnoreCase(specialization)) return;
+
+                Map<String, Object> doctorMap = new HashMap<>();
+                doctorMap.put("id", user.getId());
+                doctorMap.put("name", user.getName());
+                doctorMap.put("email", user.getEmail());
+                doctorMap.put("phone", user.getPhone());
+                doctorMap.put("specialization", profile.getSpecialization());
+                doctorMap.put("qualification", profile.getQualification());
+                doctorMap.put("experience", profile.getExperience());
+                doctorMap.put("clinicName", profile.getClinicName());
+                doctorMap.put("address", profile.getAddress());
+                doctorMap.put("city", profile.getCity());
+                doctorMap.put("fee", profile.getFee());
+                doctorMap.put("rating", profile.getRating());
+                doctorMap.put("totalReviews", profile.getTotalReviews());
+                result.add(doctorMap);
+            });
+        }
+
+        return ResponseEntity.ok(result);
+    }
+    // ── BOOK APPOINTMENT ──
+    @PostMapping("/appointments/book")
+    public ResponseEntity<?> bookAppointment(@RequestBody Map<String, Object> request) {
+        try {
+            Long patientId = Long.parseLong(request.get("patientId").toString());
+            Long doctorId  = Long.parseLong(request.get("doctorId").toString());
+            Long slotId    = Long.parseLong(request.get("slotId").toString());
+
+            // Check slot exists and is not booked
+            return slotRepository.findById(slotId).map(slot -> {
+                if (slot.getIsBooked()) {
+                    return ResponseEntity.badRequest()
+                            .body(Map.of("message", "This slot is already booked"));
+                }
+
+                // Create appointment
+                Appointment appointment = new Appointment();
+                appointment.setPatientId(patientId);
+                appointment.setDoctorId(doctorId);
+                appointment.setSlotId(slotId);
+                appointment.setStatus("CONFIRMED");
+                appointmentRepository.save(appointment);
+
+                // Mark slot as booked
+                slot.setIsBooked(true);
+                slotRepository.save(slot);
+
+                return ResponseEntity.ok(Map.of(
+                        "message", "Appointment booked successfully",
+                        "appointmentId", appointment.getId()
+                ));
+            }).orElse(ResponseEntity.badRequest()
+                    .body(Map.of("message", "Slot not found")));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Failed to book appointment: " + e.getMessage()));
+        }
     }
 }

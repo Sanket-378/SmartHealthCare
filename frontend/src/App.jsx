@@ -19,8 +19,11 @@ import DoctorRegister from "./pages/auth/DoctorRegister";
 import PatientDashboard from "./pages/patient/Dashboard";
 import FindDoctor from "./pages/patient/FindDoctor";
 import BookAppointment from "./pages/patient/BookAppointment";
+import MyAppointments from "./pages/patient/MyAppointments";
 
 import DoctorDashboard from "./pages/doctor/Dashboard";
+import ManageSlots from "./pages/doctor/ManageSlots";
+import DoctorMyAppointments from "./pages/doctor/MyAppointments";
 import AdminDashboard from "./pages/admin/Dashboard";
 
 // ============================
@@ -128,24 +131,7 @@ export default function App() {
                 <Route path="/register/patient" element={<AuthLayout><PatientRegister /></AuthLayout>} />
                 <Route path="/register/doctor" element={<AuthLayout><DoctorRegister /></AuthLayout>} />
 
-                {/* DASHBOARD ROUTES */}
-                <Route path="/patient/dashboard" element={
-                    <ProtectedRoute allowedRole="PATIENT">
-                        <AuthLayout><PatientDashboard /></AuthLayout>
-                    </ProtectedRoute>
-                } />
-                <Route path="/doctor/dashboard" element={
-                    <ProtectedRoute allowedRole="DOCTOR">
-                        <AuthLayout><DoctorDashboard /></AuthLayout>
-                    </ProtectedRoute>
-                } />
-                <Route path="/admin/dashboard" element={
-                    <ProtectedRoute allowedRole="ADMIN">
-                        <AuthLayout><AdminDashboard /></AuthLayout>
-                    </ProtectedRoute>
-                } />
-
-                {/* MAIN APP ROUTES — all inside AppLayout */}
+                {/* ALL APP ROUTES — inside AppLayout (has sidebar) */}
                 <Route path="/*" element={
                     <AppLayout>
                         <Routes>
@@ -157,6 +143,30 @@ export default function App() {
                             <Route path="/medicine" element={<MedicineSafety />} />
                             <Route path="/patient/find-doctor" element={<FindDoctor />} />
                             <Route path="/patient/book/:doctorId" element={<BookAppointment />} />
+
+                            {/* Patient */}
+                            <Route path="/patient/dashboard" element={
+                                <ProtectedRoute allowedRole="PATIENT"><PatientDashboard /></ProtectedRoute>
+                            } />
+                            <Route path="/patient/appointments" element={
+                                <ProtectedRoute allowedRole="PATIENT"><MyAppointments /></ProtectedRoute>
+                            } />
+
+                            {/* Doctor */}
+                            <Route path="/doctor/dashboard" element={
+                                <ProtectedRoute allowedRole="DOCTOR"><DoctorDashboard /></ProtectedRoute>
+                            } />
+                            <Route path="/doctor/slots" element={
+                                <ProtectedRoute allowedRole="DOCTOR"><ManageSlots /></ProtectedRoute>
+                            } />
+                            <Route path="/doctor/appointments" element={
+                                <ProtectedRoute allowedRole="DOCTOR"><DoctorMyAppointments /></ProtectedRoute>
+                            } />
+
+                            {/* Admin */}
+                            <Route path="/admin/dashboard" element={
+                                <ProtectedRoute allowedRole="ADMIN"><AdminDashboard /></ProtectedRoute>
+                            } />
                         </Routes>
                     </AppLayout>
                 } />
