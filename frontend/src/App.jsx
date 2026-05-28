@@ -8,7 +8,7 @@ import BottomNav from "./components/BottomNav";
 
 import Home from "./pages/Home";
 import AIChatbot from "./pages/AIChatbot";
-import NearCare from "./pages/NearCare";
+import Medicine from "./pages/Medicine";
 import ReportAnalyzer from "./pages/ReportAnalyzer";
 import MedicineSafety from "./pages/MedicineSafety";
 
@@ -152,7 +152,7 @@ export default function App() {
                             <Route path="/" element={<HomeRedirect />} />
                             <Route path="/chatbot" element={<AIChatbot />} />
                             <Route path="/symptom" element={<AIChatbot />} />
-                            <Route path="/nearcare" element={<NearCare />} />
+                            <Route path="/medicine" element={<Medicine />} />
                             <Route path="/report" element={<ReportAnalyzer />} />
                             <Route path="/medicine" element={<MedicineSafety />} />
                             <Route path="/patient/find-doctor" element={<FindDoctor />} />
